@@ -11,7 +11,7 @@ from . import DefineCommon as Common
 #==============================================================
 bl_info = {
 "name" : "CommandRecorder",# プラグイン名
-"author" : "Muthird",# 作者
+"author" : "BuuGraphic",# 作者
 "version": (2, 0, 2),# プラグインのバージョン
 "blender": (2, 80, 0),# プラグインが動作するBlenderのバージョン
 "location" : "View 3D",# Blender内部でのプラグインの位置づけ
