@@ -67,7 +67,21 @@ def Get_Recent(Return_Bool):#操作履歴にアクセス
         if t.name.startswith("Recent Reports")
     ]
     # make a report
-    bpy.ops.ui.reports_to_textblock()
+    win = bpy.context.window_manager.windows[0]
+    area = win.screen.areas[0]
+    area_type = area.type
+    area.type = "INFO"
+    override = bpy.context.copy()
+    override['window'] = win
+    override['screen'] = win.screen
+    override['area'] = win.screen.areas[0]
+    bpy.ops.info.select_all(override, action='SELECT')
+    bpy.ops.info.report_copy(override)
+    area.type = area_type
+    clipboard = bpy.context.window_manager.clipboard
+    bpy.ops.text.new()
+    bpy.data.texts['Text'].name = "Recent Reports"
+    bpy.data.texts['Recent Reports'].write(clipboard)
     # print the report
     if Return_Bool == "Reports_All":
         return bpy.data.texts["Recent Reports"].lines#操作履歴全ての行
