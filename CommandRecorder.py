@@ -79,8 +79,7 @@ def Get_Recent(Return_Bool):#操作履歴にアクセス
     bpy.ops.info.report_copy(override)
     area.type = area_type
     clipboard = bpy.context.window_manager.clipboard
-    bpy.ops.text.new()
-    bpy.data.texts['Text'].name = "Recent Reports"
+    bpy.data.texts.new("Recent Reports")
     bpy.data.texts['Recent Reports'].write(clipboard)
     # print the report
     if Return_Bool == "Reports_All":
