@@ -1,4 +1,4 @@
-﻿#==============================================================
+#==============================================================
 #スタートアップ
 #-------------------------------------------------------------------------------------------
 import bpy #Blender内部のデータ構造にアクセスするために必要
@@ -94,7 +94,7 @@ def Record(Num , Mode):
         CR_Prop.Temp_Num = len(Get_Recent("Reports_All"))
     else :
         CR_PT_List.Bool_Record = 0
-        for Num_Loop in range (CR_Prop.Temp_Num+1 , len(Get_Recent("Reports_All"))) :
+        for Num_Loop in range (CR_Prop.Temp_Num , len(Get_Recent("Reports_All"))) :
             TempText = Get_Recent("Reports_All")[Num_Loop-1].body
             if TempText.count("bpy") :
                 Item = CR_("List",Num).add()
@@ -105,11 +105,12 @@ def Add(Num) :
     if Num or len(CR_("List",0)) < 250 :
         Item = CR_("List",Num).add()
         if Num :
-            if Get_Recent("Reports_All")[-2].body.count("bpy"):
-                Name_Temp = Get_Recent("Reports_All")[-2].body
+            Recent = Get_Recent("Reports_All")
+            if Recent[-2].body.count("bpy"):
+                Name_Temp = Recent[-2].body
                 Item.name = Name_Temp[Name_Temp.find("bpy"):]
             else :
-                Name_Temp = Get_Recent("Reports_All")[-3].body
+                Name_Temp = Recent[-3].body
                 Item.name = Name_Temp[Name_Temp.find("bpy."):]
         else :
             Item.name = "Untitled_{0:03d}".format(len(CR_("List",Num)))
@@ -167,6 +168,19 @@ def Move(Num , Mode) :
             CR_(CR_("Index",254),index1)
             CR_("List",254).clear()
 
+def Select_Command(Mode):
+    currentIndex = CR_("Index",0)
+    listlen = len(CR_("List",0)) - 1
+    if Mode == "Up":
+        if currentIndex == 0:
+            bpy.context.scene.CR_Var.List_Index_000 = listlen
+        else:
+            bpy.context.scene.CR_Var.List_Index_000 = currentIndex - 1
+    else:
+        if currentIndex == listlen:
+            bpy.context.scene.CR_Var.List_Index_000 = 0
+        else:
+            bpy.context.scene.CR_Var.List_Index_000 = currentIndex + 1
 
 def Play(Commands) :
     scene = bpy.context.scene
@@ -227,7 +241,7 @@ def Clear(Num) :
 class CR_OT_Selector(Operator):
     bl_idname = "cr_selector.button"#大文字禁止
     bl_label = "Button_Selector"#メニューに登録される名前
-    bl_options = {'REGISTER', 'UNDO'} # 処理の属性
+    #bl_options = {'REGISTER', 'UNDO'} # 処理の属性
     Mode : bpy.props.StringProperty(default="")
     def execute(self, context):
         #追加
@@ -245,6 +259,23 @@ class CR_OT_Selector(Operator):
         bpy.context.area.tag_redraw()
         return{'FINISHED'}#UI系の関数の最後には必ず付ける
 
+class CR_OT_Selector_Up(Operator):
+    bl_idname = "cr_selector_up.button"
+    bl_label = "Command_OT_Selection_Up"
+    #bl_options = {'REGISTER', 'UNDO'}
+    def execute(self, context):
+        Select_Command("Up")
+        bpy.context.area.tag_redraw()
+        return{'FINISHED'}
+
+class CR_OT_Selector_Down(Operator):
+    bl_idname = "cr_selector_down.button"
+    bl_label = "Command_OT_Selection_Down"
+    #bl_options = {'REGISTER', 'UNDO'}
+    def execute(self, context):
+        Select_Command("Down")
+        bpy.context.area.tag_redraw()
+        return{'FINISHED'}
 
 class Command_OT_Play(Operator):
     bl_idname = "cr_commandplay.button"#大文字禁止
@@ -260,7 +291,7 @@ class Command_OT_Play(Operator):
 class Command_OT_Add(Operator):
     bl_idname = "cr_commandadd.button"#大文字禁止
     bl_label = "Command_OT_Add"#メニューに登録される名前
-    bl_options = {'REGISTER', 'UNDO'}#アンドゥ履歴に登録
+    #bl_options = {'REGISTER', 'UNDO'}#アンドゥ履歴に登録
     def execute(self, context):
         #コマンドを実行
         Add(CR_("Index",0)+1)
@@ -270,7 +301,7 @@ class Command_OT_Add(Operator):
 class CR_OT_Command(Operator):
     bl_idname = "cr_command.button"#大文字禁止
     bl_label = "Button_Command"#メニューに登録される名前
-    bl_options = {'REGISTER', 'UNDO'} # 処理の属性
+    #bl_options = {'REGISTER', 'UNDO'} # 処理の属性
     Mode : bpy.props.StringProperty(default="")
     def execute(self, context):
         #録画を開始
@@ -304,7 +335,7 @@ class CR_OT_Command(Operator):
 def StrageFile() :
     Name_File = "CommandRecorder_Storage.txt"
     AddonDirector = os.path.dirname(os.path.abspath(__file__))#アドオン管理システムの絶対パスを取得
-    File_Path = os.path.normpath(os.path.join(AddonDirector, '../CommandRecorder/Storage/' + Name_File))
+    File_Path = os.path.normpath(os.path.join(AddonDirector, '../CommandRecorder-master/Storage/' + Name_File))
     return File_Path
 
 def Save():
@@ -404,7 +435,7 @@ def I_Move(Mode):
 class CR_OT_Instance(Operator):
     bl_idname = "cr_instance.button"#大文字禁止
     bl_label = "Button_Instance"#メニューに登録される名前
-    bl_options = {'REGISTER', 'UNDO'} # 処理の属性
+    #bl_options = {'REGISTER', 'UNDO'} # 処理の属性
     Mode : bpy.props.StringProperty(default="")
     def execute(self, context):
         #追加
@@ -625,6 +656,8 @@ class CR_Prop(PropertyGroup):#何かとプロパティを収納
     [
     (Command_OT_Add.bl_idname, "COMMA", "PRESS", False, False, True),
     (Command_OT_Play.bl_idname, "PERIOD", "PRESS", False, False, True),
+    (CR_OT_Selector_Up.bl_idname, "WHEELUPMOUSE","PRESS", False, False, True),
+    (CR_OT_Selector_Down.bl_idname, "WHEELDOWNMOUSE","PRESS", False, False, True)
     ]
 
 
@@ -658,6 +691,8 @@ CR_OT_String,
 CR_Prop,
 CR_List_Selector,
 CR_OT_Selector,
+CR_OT_Selector_Up,
+CR_OT_Selector_Down,
 CR_List_Command,
 Command_OT_Play,
 Command_OT_Add,
